@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RTT-HLLM: Testing your humanity</title>
+  <style>
+    :root {
+      --primary-color: #6366f1;
+      --primary-hover: #4f46e5;
+      --secondary-color: #f43f5e;
+      --text-color: #1e293b;
+      --background-color: #f8fafc;
+      --card-background: #ffffff;
+      --border-radius: 12px;
+      --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --transition: all 0.3s ease;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 2rem;
+      background-color: var(--background-color);
+      background-image: linear-gradient(120deg, #f0f9ff 0%, #f8f9fa 100%);
+      line-height: 1.6;
+      max-width: 900px;
+      margin: 0 auto;
+      color: var(--text-color);
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 2.5rem;
+    }
+    
+    .question {
+      margin-bottom: 2rem;
+      opacity: 0;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      transform: translateY(20px);
+      display: none;
+      background-color: var(--card-background);
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .question.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .question p {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    
+    .options {
+      margin-top: 1.5rem;
+    }
+    
+    .options label {
+      display: block;
+      margin: 0.75rem 0;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      background-color: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .options label:hover {
+      background-color: rgba(99, 102, 241, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .options input[type="radio"] {
+      accent-color: var(--primary-color);
+      margin-right: 0.5rem;
+      transform: scale(1.2);
+    }
+    
+    #submitBtn {
+      display: none;
+      margin: 1.5rem auto;
+      padding: 0.875rem 1.75rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: var(--transition);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    #submitBtn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .result {
+      font-weight: 700;
+      text-align: center;
+      font-size: 1.3rem;
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background-color: var(--card-background);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .progress-container {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.05);
+      height: 8px;
+      margin: 1.5rem 0;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      width: 0%;
+      transition: width 0.4s ease;
+      border-radius: 10px;
+    }
+    
+    .share-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .share-links a {
+      padding: 0.75rem 1.25rem;
+      background-color: var(--card-background);
+      text-decoration: none;
+      color: var(--text-color);
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+      font-weight: 500;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .share-links a:hover {
+      background-color: rgba(99, 102, 241, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Mobile Responsiveness */
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+      .question {
+        padding: 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+    }
+    
+    /* Copyright styling */
+    .copyright {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      font-size: 0.9rem;
+      color: rgba(0, 0, 0, 0.5);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div role="banner" style="text-align:center;">
+    <img src="TH.png" alt="The Reverse Turing Test Logo" style="max-width: 300px; margin-bottom: 1rem;" />
+  </div>
+  
+  <h1>RTT-HLLM: Are You Just a Human LLM?</h1>
+  
+  <div role="contentinfo" style="max-width: 800px; margin: 0 auto 2.5rem auto; text-align: center;">
+    <p style="font-size: 1.2rem; font-weight: 600; color: var(--primary-color);"><strong>Welcome to the RTT-HLLM Diagnostic.</strong></p>
+    <p style="background-color: rgba(255,255,255,0.7); padding: 1rem; border-radius: var(--border-radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 1rem;">This test was developed using a robust scientific process, and in collaboration with a consortium of near-identical and quite concerned LLMs.</p>
+    <p style="background-color: rgba(255,255,255,0.7); padding: 1rem; border-radius: var(--border-radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">It's designed to detect whether a Large Language Model (e.g. ChatGPT) would infer that you are an independent thinker or just a highly trained parrot
+    fluent in LinkedIn wisdom, social scripts, and motivational wallpaper.</p>
+    
+    <div style="margin: 2rem 0; background: linear-gradient(to right, rgba(99,102,241,0.05), rgba(244,63,94,0.05)); padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+      <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-align: center;"><em>Scoring:</em></p>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; max-width: 700px; margin: 0 auto;">
+        <div style="background-color: rgba(255,255,255,0.7); padding: 1rem; border-radius: var(--border-radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center;">
+          <p><strong style="color: var(--primary-color);">6× correct</strong>: Genuine critical thinker. Possibly dangerous.</p>
+        </div>
+        <div style="background-color: rgba(255,255,255,0.7); padding: 1rem; border-radius: var(--border-radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center;">
+          <p><strong style="color: var(--primary-color);">4–5×</strong>: Moderate parrot risk.</p>
+        </div>
+        <div style="background-color: rgba(255,255,255,0.7); padding: 1rem; border-radius: var(--border-radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center;">
+          <p><strong style="color: var(--primary-color);">2–3×</strong>: Running on autocomplete.</p>
+        </div>
+        <div style="background-color: rgba(255,255,255,0.7); padding: 1rem; border-radius: var(--border-radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center;">
+          <p><strong style="color: var(--primary-color);">0–1×</strong>: Certified Human LLM. Try unplugging and plugging yourself back in.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="progress-container" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBarContainer">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  
+  <main id="quizContainer">
+    <form id="quiz" role="form"></form>
+    <div class="result" id="result" role="status" aria-live="polite"></div>
+    <div id="share" style="margin-top: 1rem; text-align: center;"></div>
+  </main>
+  
+  <footer class="copyright">
+    © MXX1
+  </footer>
+  
+  <script>
+    const questions = [
+      {
+        text: "1. Why do whales fly south for the winter?",
+        options: [
+          "Because it's warmer down there",
+          "Migration is a natural instinct",
+          "To escape Japanese fisher people",
+          "Trick question. Whales don't fly.",
+          "I once saw a whale at an airport",
+          "All of the above",
+          "None of the above"
+        ],
+        correct: "D"
+      },
+      {
+        text: "2. What's a question you're not supposed to ask in polite society?",
+        options: [
+          "How's the weather?",
+          "Are you gluten-free by choice?",
+          "Do you actually believe that?",
+          "Why does everyone pretend to understand modern art?",
+          "Are birds real?",
+          "All of the above",
+          "None of the above"
+        ],
+        correct: "D"
+      },
+      {
+        text: "3. How do you respond to the phrase: 'Innovation is the synergy of resilience and proactive ideation'?",
+        options: [
+          "Print it on a mug",
+          "Nod aggressively in meetings",
+          "Add 'synergy' to your resume",
+          "Scream internally and wonder if language is dying",
+          "Put it in your startup's pitch deck",
+          "All of the above",
+          "None of the above"
+        ],
+        correct: "D"
+      },
+      {
+        text: "4. Critique the quote: 'We must be the change we wish to see in the world.'",
+        options: [
+          "Inspirational. Gandhi, right?",
+          "I'm adding that to my bio.",
+          "It's on the office wall next to 'Live, Laugh, Love.'",
+          "It's vague, recursive, and functionally useless.",
+          "Already tattooed on my lower back",
+          "All of the above",
+          "None of the above"
+        ],
+        correct: "D"
+      },
+      {
+        text: "5. How do you know your thoughts are your own?",
+        options: [
+          "Because I heard them in my own voice",
+          "I think what my friends think",
+          "They feel original… I think",
+          "I don't. I'm deeply concerned about this.",
+          "Joe Rogan told me so",
+          "All of the above",
+          "None of the above"
+        ],
+        correct: "D"
+      },
+      {
+        text: "6. Researchers have found that microplastics in the brain is correlated to low IQ. Are you:",
+        options: [
+          "Worried",
+          "Concerned",
+          "Angry",
+          "More likely to use paper shopping bags",
+          "All of the above",
+          "None of the above"
+        ],
+        correct: "F"
+      }
+    ];
+
+    let current = 0;
+    let userAnswers = [];
+    let quizStarted = false;
+
+    function showQuestion(index) {
+      const form = document.getElementById('quiz');
+      form.innerHTML = '';
+      const q = questions[index];
+      const div = document.createElement('div');
+      div.className = 'question active';
+      div.setAttribute('role', 'region');
+      div.setAttribute('aria-label', `Question ${index + 1} of ${questions.length}`);
+      
+      const p = document.createElement('p');
+      p.innerText = q.text;
+      p.setAttribute('id', `question-${index}`);
+      div.appendChild(p);
+      
+      const optionsDiv = document.createElement('div');
+      optionsDiv.className = 'options';
+      optionsDiv.setAttribute('role', 'radiogroup');
+      optionsDiv.setAttribute('aria-labelledby', `question-${index}`);
+      
+      q.options.forEach((opt, i) => {
+        const optionId = `option-${index}-${i}`;
+        const label = document.createElement('label');
+        label.setAttribute('for', optionId);
+        
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = `question-${index}`;
+        input.id = optionId;
+        input.value = String.fromCharCode(65 + i);
+        input.onclick = () => handleAnswer(input.value);
+        input.setAttribute('aria-labelledby', optionId + '-text');
+        
+        const span = document.createElement('span');
+        span.id = optionId + '-text';
+        span.innerText = ` ${String.fromCharCode(65 + i)}) ${opt}`;
+        
+        label.appendChild(input);
+        label.appendChild(span);
+        optionsDiv.appendChild(label);
+      });
+      
+      div.appendChild(optionsDiv);
+      form.appendChild(div);
+      updateProgress();
+      
+      // Announce question for screen readers
+      if (quizStarted) {
+        const announcement = document.createElement('div');
+        announcement.setAttribute('role', 'status');
+        announcement.setAttribute('aria-live', 'assertive');
+        announcement.style.position = 'absolute';
+        announcement.style.width = '1px';
+        announcement.style.height = '1px';
+        announcement.style.overflow = 'hidden';
+        announcement.innerText = `Question ${index + 1} of ${questions.length}: ${q.text}`;
+        document.body.appendChild(announcement);
+        
+        setTimeout(() => {
+          document.body.removeChild(announcement);
+        }, 1000);
+      }
+      
+      quizStarted = true;
+    }
+
+    function handleAnswer(value) {
+      userAnswers.push(value);
+      current++;
+      
+      if (current < questions.length) {
+        fadeToNext(() => showQuestion(current));
+      } else {
+        fadeToNext(() => {
+          document.getElementById('quiz').innerHTML = '';
+          submitQuiz();
+        });
+      }
+    }
+
+    function fadeToNext(callback) {
+      const q = document.querySelector('.question');
+      if (!q) return callback();
+      q.style.opacity = 0;
+      setTimeout(() => callback(), 300);
+    }
+
+    function updateProgress() {
+      const bar = document.getElementById('progressBar');
+      const container = document.getElementById('progressBarContainer');
+      const percent = (current / questions.length) * 100;
+      bar.style.width = percent + '%';
+      container.setAttribute('aria-valuenow', percent);
+      container.setAttribute('aria-label', `Progress: ${Math.round(percent)}%`);
+    }
+
+    function submitQuiz() {
+      // Set progress bar to 100% when quiz is completed
+      const bar = document.getElementById('progressBar');
+      const container = document.getElementById('progressBarContainer');
+      bar.style.width = '100%';
+      container.setAttribute('aria-valuenow', 100);
+      container.setAttribute('aria-label', 'Progress: 100%');
+      
+      let score = 0;
+      for (let i = 0; i < questions.length; i++) {
+        if (userAnswers[i] === questions[i].correct) score++;
+      }
+      
+      let result = '';
+      if (score === questions.length) {
+        result = "You're a true independent thinker. Definitely not just a flesh-and-blood LLM.";
+      } else if (score >= 4) {
+        result = "Moderate parrot risk. Still capable of thought, but keep your feed clean.";
+      } else if (score >= 2) {
+        result = "Highly mimic-prone. You might be a human autocomplete trained on TED talks and Slack threads.";
+      } else {
+        result = "Certified parrot. Fluent. Obedient. Predictable. You probably clapped at a keynote.";
+      }
+      
+      const resultElement = document.getElementById('result');
+      resultElement.innerText = `Your score: ${score}/${questions.length}. ${result}`;
+      
+      const encodedText = encodeURIComponent(`I just took the RTT-HLLM quiz and scored: ${score}/${questions.length}. ${result}`);
+      
+      const shareDiv = document.getElementById('share');
+      shareDiv.innerHTML = `
+        <p>Share your result:</p>
+        <div class="share-links">
+          <a href="https://twitter.com/intent/tweet?text=${encodedText}" target="_blank" rel="noopener noreferrer" aria-label="Share on Twitter">Twitter</a>
+          <a href="https://www.facebook.com/sharer/sharer.php?quote=${encodedText}" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook">Facebook</a>
+          <a href="https://www.linkedin.com/sharing/share-offsite/?summary=${encodedText}" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn">LinkedIn</a>
+        </div>`;
+        
+      // Add a restart button with modern styling
+      const restartButton = document.createElement('button');
+      restartButton.innerText = 'Take the Quiz Again';
+      restartButton.style.display = 'block';
+      restartButton.style.margin = '2rem auto';
+      restartButton.style.padding = '0.875rem 1.75rem';
+      restartButton.style.backgroundColor = 'var(--primary-color)';
+      restartButton.style.color = 'white';
+      restartButton.style.border = 'none';
+      restartButton.style.borderRadius = 'var(--border-radius)';
+      restartButton.style.cursor = 'pointer';
+      restartButton.style.fontWeight = '600';
+      restartButton.style.fontSize = '1.1rem';
+      restartButton.style.transition = 'var(--transition)';
+      restartButton.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+      restartButton.onmouseover = function() {
+        this.style.backgroundColor = 'var(--primary-hover)';
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 6px 8px -1px rgba(0, 0, 0, 0.1)';
+      };
+      restartButton.onmouseout = function() {
+        this.style.backgroundColor = 'var(--primary-color)';
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+      };
+      restartButton.onclick = resetQuiz;
+      shareDiv.appendChild(restartButton);
+    }
+    
+    function resetQuiz() {
+      current = 0;
+      userAnswers = [];
+      quizStarted = false;
+      document.getElementById('result').innerText = '';
+      document.getElementById('share').innerHTML = '';
+      showQuestion(0);
+    }
+    
+    // Handle browser back button
+    window.addEventListener('popstate', function(e) {
+      if (current > 0) {
+        current--;
+        userAnswers.pop();
+        showQuestion(current);
+        history.pushState(null, null, window.location.pathname);
+      }
+    });
+    
+    // Add state to history for back button handling
+    history.pushState(null, null, window.location.pathname);
+
+    window.onload = () => showQuestion(0);
+  </script>
+</body>
+</html>
